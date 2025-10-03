@@ -211,7 +211,8 @@ class LL1Parser:
                 ['NUMERO_REAL', 'AFTER_BINARY_OR_STORAGE'],     # Continue with number
                 ['VARIAVEL', 'AFTER_VAR_OR_ASSIGNMENT'],        # Continue with variable
                 ['ABRE_PARENTESES', 'EXPR', 'FECHA_PARENTESES', 'AFTER_BINARY_OR_STORAGE'],  # Complex operand
-                ['NOT', 'AFTER_UNARY']                          # Unary NOT: ((expr) ! ...)
+                ['NOT', 'AFTER_UNARY'],                         # Unary NOT: ((expr) ! ...)
+                ['EPSILON']                                      # End nested expression: ((expr))
             ],
 
             # Handle what comes after unary NOT
@@ -242,14 +243,23 @@ class LL1Parser:
             ],
             'LOGIC_OP': [['AND'], ['OR'], ['NOT']],
 
-            # Control structures adapted to teste2.txt format
+            # Revolutionary simple pattern for control structure bodies
+            'NESTED_BODY': [
+                ['LINHA'],                                       # Standard body: (expr)
+                ['ABRE_PARENTESES', 'LINHA', 'FECHA_PARENTESES'] # Double nested: ((expr))
+            ],
+
+            # Control structures with enhanced flexibility
             'FOR_STRUCT': [
+                # Parenthesized format: (FOR (1)(10)(I)(body))
                 ['ABRE_PARENTESES', 'NUMERO_REAL', 'FECHA_PARENTESES',
                  'ABRE_PARENTESES', 'NUMERO_REAL', 'FECHA_PARENTESES',
-                 'ABRE_PARENTESES', 'NUMERO_REAL', 'FECHA_PARENTESES', 'LINHA']
+                 'ABRE_PARENTESES', 'NUMERO_REAL', 'FECHA_PARENTESES', 'NESTED_BODY'],
+                # Direct format: (FOR 1 10 I body)
+                ['NUMERO_REAL', 'NUMERO_REAL', 'VARIAVEL', 'NESTED_BODY']
             ],
-            'WHILE_STRUCT': [['ABRE_PARENTESES', 'EXPR', 'FECHA_PARENTESES', 'LINHA']],
-            'IFELSE_STRUCT': [['ABRE_PARENTESES', 'EXPR', 'FECHA_PARENTESES', 'LINHA', 'LINHA']]
+            'WHILE_STRUCT': [['ABRE_PARENTESES', 'EXPR', 'FECHA_PARENTESES', 'NESTED_BODY']],
+            'IFELSE_STRUCT': [['ABRE_PARENTESES', 'EXPR', 'FECHA_PARENTESES', 'NESTED_BODY', 'NESTED_BODY']]
         }
 
         # Build parsing table
